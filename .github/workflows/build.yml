@@ -32,7 +32,8 @@ jobs:
 
       - name: Build FBInk (device-side display tool)
         run: |
-          git clone --depth 1 --branch v1.25.0 https://github.com/NiLuJe/FBInk.git /tmp/FBInk
+          git clone --depth 1 --branch v1.25.0 --recursive https://github.com/NiLuJe/FBInk.git /tmp/FBInk
+          cd /tmp/FBInk && git submodule update --init --recursive || true
           export ARM_TOOLCHAIN="${KINDLE_BUILD_DIR:-/var/tmp/kindle-dashboard-arm}/arm-linux-musleabi-cross"
           export PATH="$ARM_TOOLCHAIN/bin:$PATH"
           cd /tmp/FBInk
