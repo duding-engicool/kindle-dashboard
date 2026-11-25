@@ -44,8 +44,8 @@ jobs:
             CFLAGS="-Os -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -D_GNU_SOURCE" \
             LDFLAGS="-static"
           mkdir -p "$GITHUB_WORKSPACE/dist"
-          FBINK_BIN=$(find . -type f -name fbink -newer Makefile | head -1)
-          [ -n "$FBINK_BIN" ] || FBINK_BIN=$(find . -type f -name fbink | head -1)
+          FBINK_BIN=$(find bin Release -path '*/.git' -prune -o -type f -name fbink -print 2>/dev/null | head -1)
+          [ -n "$FBINK_BIN" ] || FBINK_BIN=$(find . -name .git -prune -o -type f -name fbink -print | head -1)
           echo "fbink binary: $FBINK_BIN"
           cp "$FBINK_BIN" "$GITHUB_WORKSPACE/dist/fbink"
           file "$GITHUB_WORKSPACE/dist/fbink"
