@@ -1,0 +1,61 @@
+name: build-kpw3-arm
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', 'README.md', 'preview.html']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake perl python3
+
+      - name: Download toolchain and dependencies
+        shell: pwsh
+        run: ./tools/prepare-arm.ps1
+
+      - name: Prepare native headers
+        run: python3 tools/prepare_native_headers.py
+
+      - name: Build ARM static binary
+        run: |
+          cp config.example.yaml config.yaml
+          bash tools/build-arm.sh
+
+      - name: Build FBInk (device-side display tool)
+        run: |
+          git clone --depth 1 --branch v1.25.0 https://github.com/NiLuJe/FBInk.git /tmp/FBInk
+          export ARM_TOOLCHAIN="${KINDLE_BUILD_DIR:-/var/tmp/kindle-dashboard-arm}/arm-linux-musleabi-cross"
+          export PATH="$ARM_TOOLCHAIN/bin:$PATH"
+          cd /tmp/FBInk
+          make kindle -j4 \
+            CC=arm-linux-musleabi-gcc \
+            AR=arm-linux-musleabi-ar \
+            STRIP=arm-linux-musleabi-strip \
+            CFLAGS="-Os -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -D_GNU_SOURCE" \
+            LDFLAGS="-static"
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          FBINK_BIN=$(find . -type f -name fbink -newer Makefile | head -1)
+          [ -n "$FBINK_BIN" ] || FBINK_BIN=$(find . -type f -name fbink | head -1)
+          echo "fbink binary: $FBINK_BIN"
+          cp "$FBINK_BIN" "$GITHUB_WORKSPACE/dist/fbink"
+          file "$GITHUB_WORKSPACE/dist/fbink"
+
+      - name: Package for KPW3
+        run: bash tools/package-arm.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kindle-dashboard-kpw3
+          path: |
+            dist/kindle-dashboard-*-kpw3.tar.gz
+            dist/fbink
