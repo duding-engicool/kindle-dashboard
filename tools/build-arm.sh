@@ -24,6 +24,7 @@ build() {
     cmake -S "$WORK/src/$name" -B "$WORK/build-$name" \
         -DCMAKE_TOOLCHAIN_FILE="$ROOT/cmake/kindle-musl.cmake" \
         -DCMAKE_INSTALL_PREFIX="$ARM_DEPS" -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF "$@"
     cmake --build "$WORK/build-$name" -j 6
     cmake --install "$WORK/build-$name"
@@ -58,6 +59,7 @@ mkdir -p "$ARM_DEPS/include/nlohmann"
 cp "$ROOT/.build/include/nlohmann/json.hpp" "$ARM_DEPS/include/nlohmann/"
 cmake -S "$ROOT" -B "$ROOT/.build/kindle-static" \
     -DCMAKE_TOOLCHAIN_FILE="$ROOT/cmake/kindle-musl.cmake" -DCMAKE_BUILD_TYPE=MinSizeRel \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_PREFIX_PATH="$ARM_DEPS" -DOPENSSL_ROOT_DIR="$ARM_DEPS" -DOPENSSL_USE_STATIC_LIBS=ON \
     -DZLIB_LIBRARY_RELEASE="$ARM_DEPS/lib/libz.a" \
     -DDASHBOARD_STATIC=ON -DDASHBOARD_WINDOW=OFF -DBUILD_TESTING=OFF
