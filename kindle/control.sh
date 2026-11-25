@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 APP=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# kindle-lab: 让 APP/bin 里的 fbink 可被找到（Kindle 系统分区不可写，无法装到 /usr/bin）
+export PATH="$APP/bin:$PATH"
 INITCTL=/sbin/initctl
 STATE=/tmp/kindle-dashboard-service
 case "${1:-start}" in
